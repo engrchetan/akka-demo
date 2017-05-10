@@ -15,10 +15,14 @@ public class AkkaMultiThreadCounterMain {
     private static class ResourceManager extends AbstractLoggingActor {
         ResourceManager() {
             receive(ReceiveBuilder
-                    .match(String.class, s -> log().info("Message index " + ++index))
+                    .match(String.class, s -> incrementMessage())
                     .matchAny(m -> unhandled(m))
                     .build()
             );
+        }
+
+        private void incrementMessage() {
+            log().info(AkkaMultiThreadCounterMain.messageWithCounter());
         }
     }
 
@@ -28,14 +32,19 @@ public class AkkaMultiThreadCounterMain {
         for (int i = 0; i < 5; i++) {
             new Thread(() -> {
                 for (int j = 0; j < 5; j++) {
+                    //System.out.println("Thread " + Thread.currentThread().getName() + messageWithCounter());
                     manager.tell("Message", ActorRef.noSender());
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {}
                 }
             }).start();
         }
         System.in.read();
+    }
+
+    private static String messageWithCounter() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {}
+        return " Message index " + ++index;
     }
 
 }
